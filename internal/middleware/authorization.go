@@ -20,5 +20,26 @@ func Authorization(next http.Handler) http.Handler {
 			api.RequestErrorHandler(w, UnAuthorizedError)
 			return
 		}
+
+		var database *tools.DatabaseInterface
+		database, err = tools.NewDatabase()
+
+		if err!= nil{
+			api.InternalErrorHandler(w)
+			return
+		}
+
+		var loginDetails *tools.LoginDetails
+		loginDetails = (*database).GetUserLoginDetails(username)
+
+		if (loginDetails == nil || (token != (*loginDetails).AuthToken)) {
+			log.Error(UnAuthorizedError)
+			api.RequestErrorHandler(w, UnAuthorizedError)
+			return
+		}
+
+		next.ServeHTTP(w,r) // Calls next middleware in line or the handler function
 	}
+
+	
 }
